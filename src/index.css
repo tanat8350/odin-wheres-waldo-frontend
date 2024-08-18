@@ -79,3 +79,7 @@ button:focus-visible {
     filter: blur(2px);
   }
 }
+
+dialog::backdrop {
+  backdrop-filter: blur(10px);
+}

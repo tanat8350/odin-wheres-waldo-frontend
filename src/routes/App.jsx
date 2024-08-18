@@ -4,7 +4,12 @@ function App() {
     <>
       <h1>Odin Where's Waldo</h1>
       <div className="card">
-        <Link to="/game">Start game</Link>
+        <div>
+          <Link to="/game">Start game</Link>
+        </div>
+        <div>
+          <Link to="/score">Scoreboard</Link>
+        </div>
       </div>
     </>
   );

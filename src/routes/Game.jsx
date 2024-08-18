@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faCircleCheck } from '@fortawesome/free-regular-svg-icons';
+import { useNavigate } from 'react-router-dom';
 
 const MAX_DIFF_X = 50;
 const MAX_DIFF_Y = 100;
@@ -8,15 +9,17 @@ const MARK_SIZE = 50;
 const STICKY_SIZE = 100;
 
 const Game = () => {
+  const navigate = useNavigate();
   const [data, setData] = useState(null);
   const [circles, setCircles] = useState([]);
   const locations = useRef(null);
-  const result = useRef(null);
+  const results = useRef(null);
+  const modal = useRef(null);
 
-  const onClick = (e) => {
+  const onClick = async (e) => {
+    // modal.current.showModal();
     const px = e.pageX;
     const py = e.pageY;
-    console.log(px, py);
     const copy = [...locations.current];
     let found = null;
     let originalIndex = null;
@@ -29,19 +32,42 @@ const Game = () => {
       }
     }
     if (found === 0 || found) {
-      result.current[originalIndex] = `${px},${py}`;
+      results.current[originalIndex] = `${px},${py}`;
       copy.splice(found, 1);
       locations.current = copy;
-      console.log('result', result.current);
       setCircles([
         ...circles,
         { key: found, x: px - MARK_SIZE / 2, y: py - MARK_SIZE / 2 },
       ]);
     }
     if (locations.current.length === 0) {
-      console.log('you won');
+      const res = await fetch(`http://localhost:3000/game/${data.gameid}`, {
+        method: 'post',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ imageid: data.id, results: results.current }),
+        mode: 'cors',
+      });
+      const json = await res.json();
+      if (json.success) {
+        modal.current.showModal();
+      }
     }
   };
+
+  const submitName = async (e) => {
+    e.preventDefault();
+    const res = await fetch(`http://localhost:3000/game/${data.gameid}`, {
+      method: 'put',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ player: e.target.player.value }),
+      mode: 'cors',
+    });
+    const json = await res.json();
+    if (json.success) {
+      navigate('/game');
+    }
+  };
+
   useEffect(() => {
     fetch('http://localhost:3000/game', { mode: 'cors' })
       .then((res) => {
@@ -52,7 +78,7 @@ const Game = () => {
         locations.current = json.locations.map((value, index) => {
           return `${index},${value}`;
         });
-        result.current = new Array(json.locations.length);
+        results.current = new Array(json.locations.length);
       });
   }, []);
   return (
@@ -67,9 +93,10 @@ const Game = () => {
                 data.locations.map((_, i) => {
                   return (
                     <img
+                      key={i}
                       src={`http://localhost:3000/images/${data.id}/${i + 1}.jpg`}
                       alt={i}
-                      className={result.current[i] && 'found'}
+                      className={results.current[i] && 'found'}
                       style={{ height: `${STICKY_SIZE}px` }}
                     />
                   );
@@ -81,9 +108,10 @@ const Game = () => {
               onClick={onClick}
             />
             {circles.length > 0 &&
-              circles.map((c) => {
+              circles.map((c, i) => {
                 return (
                   <FontAwesomeIcon
+                    key={i}
                     icon={faCircleCheck}
                     bounce
                     className="fail-mark"
@@ -98,6 +126,19 @@ const Game = () => {
                 );
               })}
           </div>
+          <dialog
+            ref={modal}
+            onCancel={(e) => e.preventDefault()}
+            onKeyDown={(e) => e.key === 'Escape' && e.preventDefault()}
+          >
+            <h1>Congratulations!</h1>
+            <p>Enter your name to record the score</p>
+            <form onSubmit={submitName}>
+              <input type="text" name="name" id="name" />
+              <button type="submit">Save</button>
+              <button onClick={() => navigate('/')}>Close without save</button>
+            </form>
+          </dialog>
         </>
       )}
     </>

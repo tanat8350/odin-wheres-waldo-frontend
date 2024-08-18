@@ -4,6 +4,7 @@ import App from './routes/App.jsx';
 import './index.css';
 import { createBrowserRouter, RouterProvider } from 'react-router-dom';
 import Game from './routes/Game.jsx';
+import Scoreboard from './routes/Scoreboard.jsx';
 
 const router = createBrowserRouter([
   {
@@ -13,6 +14,10 @@ const router = createBrowserRouter([
   {
     path: '/game',
     element: <Game />,
+  },
+  {
+    path: '/score',
+    element: <Scoreboard />,
   },
 ]);
 
