@@ -5,6 +5,7 @@ import { useNavigate } from 'react-router-dom';
 import { Link } from 'react-router-dom';
 import Timer from '../components/Timer';
 import { timeFormat } from '../helpers/timerFormat';
+import Dropdown from '../components/Dropdown';
 
 const MAX_DIFF_X = 50;
 const MAX_DIFF_Y = 100;
@@ -20,10 +21,17 @@ const Game = () => {
   const modal = useRef(null);
   const [timer, setTimer] = useState(false);
   const refSec = useRef(0);
+  const [dropdownCoord, setDropdownCoord] = useState(null);
+  const [chosen, setChosen] = useState(null);
 
   const clickImage = async (e) => {
     const px = e.pageX;
     const py = e.pageY;
+    if (!dropdownCoord) {
+      setDropdownCoord({ x: px, y: py });
+    } else {
+      setDropdownCoord(null);
+    }
     const copy = [...locations.current];
     let found = null;
     let originalIndex = null;
@@ -142,6 +150,14 @@ const Game = () => {
                 );
               })}
           </div>
+          {data && dropdownCoord && (
+            <Dropdown
+              data={data}
+              results={results}
+              coord={dropdownCoord}
+              setChosen={setChosen}
+            />
+          )}
           <dialog
             ref={modal}
             onCancel={(e) => e.preventDefault()}

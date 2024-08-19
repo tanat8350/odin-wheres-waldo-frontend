@@ -80,6 +80,19 @@ button:focus-visible {
   }
 }
 
+.dropdown {
+  position: absolute;
+  img {
+    border: 2px solid red;
+    height: 75px;
+  }
+
+  .found {
+    border-color: #00ff00;
+    filter: blur(2px);
+  }
+}
+
 dialog::backdrop {
   backdrop-filter: blur(10px);
 }
