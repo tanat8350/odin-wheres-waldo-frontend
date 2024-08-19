@@ -2,6 +2,9 @@ import { useEffect, useRef, useState } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faCircleCheck } from '@fortawesome/free-regular-svg-icons';
 import { useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
+import Timer from '../components/Timer';
+import { timeFormat } from '../helpers/timerFormat';
 
 const MAX_DIFF_X = 50;
 const MAX_DIFF_Y = 100;
@@ -15,9 +18,10 @@ const Game = () => {
   const locations = useRef(null);
   const results = useRef(null);
   const modal = useRef(null);
+  const [timer, setTimer] = useState(false);
+  const refSec = useRef(0);
 
-  const onClick = async (e) => {
-    // modal.current.showModal();
+  const clickImage = async (e) => {
     const px = e.pageX;
     const py = e.pageY;
     const copy = [...locations.current];
@@ -44,13 +48,21 @@ const Game = () => {
       const res = await fetch(`http://localhost:3000/game/${data.gameid}`, {
         method: 'post',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ imageid: data.id, results: results.current }),
+        body: JSON.stringify({
+          imageid: data.id,
+          results: results.current,
+          duration: refSec.current,
+        }),
         mode: 'cors',
       });
       const json = await res.json();
       if (json.success) {
         modal.current.showModal();
+        setTimer(false);
+        return;
       }
+      // to maybe show error msg
+      navigate('/');
     }
   };
 
@@ -59,12 +71,12 @@ const Game = () => {
     const res = await fetch(`http://localhost:3000/game/${data.gameid}`, {
       method: 'put',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ player: e.target.player.value }),
+      body: JSON.stringify({ player: e.target.name.value }),
       mode: 'cors',
     });
     const json = await res.json();
     if (json.success) {
-      navigate('/game');
+      navigate('/score');
     }
   };
 
@@ -74,19 +86,23 @@ const Game = () => {
         return res.json();
       })
       .then((json) => {
-        setData(json);
         locations.current = json.locations.map((value, index) => {
           return `${index},${value}`;
         });
         results.current = new Array(json.locations.length);
+        setData(json);
+        setTimer(true);
       });
   }, []);
   return (
     <>
       <h1>Odin Where's Waldo</h1>
+      {/* // to delete game session before navigate */}
+      <Link to="/">Back to home</Link>
       {data && (
         <>
           <h2>Image Name: {data.name}</h2>
+          {data && <Timer isRunning={timer} refSec={refSec} />}
           <div>
             <div className="sticky">
               {data &&
@@ -105,7 +121,7 @@ const Game = () => {
             <img
               src={'http://localhost:3000/images/' + data.id + '/game.jpg'}
               alt="game"
-              onClick={onClick}
+              onClick={clickImage}
             />
             {circles.length > 0 &&
               circles.map((c, i) => {
@@ -114,7 +130,7 @@ const Game = () => {
                     key={i}
                     icon={faCircleCheck}
                     bounce
-                    className="fail-mark"
+                    className="mark"
                     style={{
                       position: 'absolute',
                       top: `${c.y}`,
@@ -132,7 +148,8 @@ const Game = () => {
             onKeyDown={(e) => e.key === 'Escape' && e.preventDefault()}
           >
             <h1>Congratulations!</h1>
-            <p>Enter your name to record the score</p>
+            <p>Enter your name</p>
+            <p>Time: {timeFormat(refSec.current)}</p>
             <form onSubmit={submitName}>
               <input type="text" name="name" id="name" />
               <button type="submit">Save</button>

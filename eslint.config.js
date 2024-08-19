@@ -26,6 +26,7 @@ export default [
     },
     rules: {
       'prettier/prettier': ['error', { singleQuote: true }],
+      'react/no-unescape-entities': 'on',
       ...js.configs.recommended.rules,
       ...react.configs.recommended.rules,
       ...react.configs['jsx-runtime'].rules,

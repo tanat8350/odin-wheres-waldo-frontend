@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
+import { timeFormat } from '../helpers/timerFormat';
 
 const Scoreboard = () => {
   const [data, setData] = useState(null);
@@ -26,13 +27,7 @@ const Scoreboard = () => {
               <td>{new Date(item.finish).toLocaleString()}</td>
               <td>{item.player ? item.player : 'Anonymous'}</td>
               <td>{item.imageid}</td>
-              <td>
-                {Math.floor(
-                  ((new Date(item.finish) - new Date(item.start)) /
-                    (1000 * 60)) *
-                    100
-                ) / 100}
-              </td>
+              <td>{timeFormat(item.duration)}</td>
             </tr>
           ))}
       </table>
