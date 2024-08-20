@@ -24,19 +24,23 @@ const Game = () => {
   const clickImage = async (e) => {
     const px = e.pageX;
     const py = e.pageY;
+    const rect = e.target.getBoundingClientRect();
+    const ax = e.clientX - rect.left;
+    const ay = e.clientY - rect.top;
+
     const copy = [...locations.current];
     let found = null;
     let originalIndex = null;
     for (const [index, value] of locations.current.entries()) {
       const [i, x, y] = value.split(',');
-      if (Math.abs(x - px) < MAX_DIFF_X && Math.abs(y - py) < MAX_DIFF_Y) {
+      if (Math.abs(x - ax) < MAX_DIFF_X && Math.abs(y - ay) < MAX_DIFF_Y) {
         found = index;
         originalIndex = i;
         break;
       }
     }
     if (found === 0 || found) {
-      results.current[originalIndex] = `${px},${py}`;
+      results.current[originalIndex] = `${ax},${ay}`;
       copy.splice(found, 1);
       locations.current = copy;
       setCircles([
